@@ -1,7 +1,7 @@
 {
   "name": "qsl-runner",
   "version": "1.0.0",
-  "description": "Plain-English browser automation scripts powered by Playwright",
+  "description": "Plain English browser automation scripts powered by Playwright",
   "keywords": [
     "playwright",
     "automation",

@@ -5,14 +5,14 @@
 ## Install
 
 ```bash
-npm install qsl playwright
+npm install qsl-runner playwright
 npx playwright install chromium
 ```
 
 ## Quick Start
 
 ```typescript
-import { run } from 'qsl'
+import { run } from 'qsl-runner'
 
 const result = await run(`
   navigate to $url
