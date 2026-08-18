@@ -167,7 +167,7 @@ describe('executeScript — if blocks', () => {
         reload
       end if
     `)
-    const { steps } = await executeScript(instructions, page as any, store, defaultOptions)
+    await executeScript(instructions, page as any, store, defaultOptions)
     expect(page.reload).toHaveBeenCalled()
   })
 
