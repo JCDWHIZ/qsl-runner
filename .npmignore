@@ -1,0 +1,10 @@
+src/
+tests/
+coverage/
+dist-tests/
+.eslintrc.json
+.prettierrc
+tsconfig*.json
+*.test.ts
+.github/
+.gitignore

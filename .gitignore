@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dist-tests/
+coverage/
+qsl-screenshots/
+*.js.map
+.DS_Store
+.env
+*.env.local
+Documents
