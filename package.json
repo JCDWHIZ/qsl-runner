@@ -1,5 +1,5 @@
 {
-  "name": "qsl",
+  "name": "qsl-runner",
   "version": "1.0.0",
   "description": "Plain-English browser automation scripts powered by Playwright",
   "keywords": [
@@ -10,15 +10,15 @@
     "scripting",
     "e2e"
   ],
-  "author": "",
+  "author": "JCDWHIZ",
   "license": "MIT",
-  "homepage": "https://github.com/yourusername/qsl#readme",
+  "homepage": "https://github.com/JCDWHIZ/qsl-runner#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/qsl.git"
+    "url": "https://github.com/JCDWHIZ/qsl-runner.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/qsl/issues"
+    "url": "https://github.com/JCDWHIZ/qsl-runner/issues"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
