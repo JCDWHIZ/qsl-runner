@@ -1,14 +1,14 @@
-name: Publish to npm
+name: CI
 
 on:
-  release:
-    types: [published]
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build-and-publish:
+  test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -18,13 +18,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
+
+      - name: Run Lint
+        run: npm run lint
 
       - name: Run Typecheck
         run: npm run typecheck
@@ -34,8 +37,3 @@ jobs:
 
       - name: Build Package
         run: npm run build
-
-      - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
