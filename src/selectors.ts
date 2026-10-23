@@ -48,12 +48,12 @@ export async function findByLabel(
   _timeout?: number
 ): Promise<Locator> {
   const strategies: Array<() => Locator> = [
-    () => page.getByLabel(label),
-    () => page.getByRole('button', { name: label }),
-    () => page.getByRole('link', { name: label }),
-    () => page.getByPlaceholder(label),
-    () => page.getByText(label),
-    () => page.getByAltText(label),
+    () => page.getByLabel(label).first(),
+    () => page.getByRole('button', { name: label }).first(),
+    () => page.getByRole('link', { name: label }).first(),
+    () => page.getByPlaceholder(label).first(),
+    () => page.getByText(label).first(),
+    () => page.getByAltText(label).first(),
   ]
 
   const strategyNames = [
@@ -90,7 +90,7 @@ export async function findByCss(
   selector: string,
   timeout = 5000
 ): Promise<Locator> {
-  const locator = page.locator(selector)
+  const locator = page.locator(selector).first()
   try {
     await locator.waitFor({ state: 'visible', timeout })
   } catch {

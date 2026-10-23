@@ -16,14 +16,20 @@ function makeInstruction(
   }
 }
 
-/** Create a basic mocked Page */
-function makePage(overrides: Partial<ReturnType<typeof buildMockPage>> = {}) {
-  return { ...buildMockPage(), ...overrides }
+/** Create a basic mocked Page with optional innerText override */
+function makePage(overrides: Partial<ReturnType<typeof buildMockPage>> = {}, innerText?: string) {
+  return { ...buildMockPage(innerText), ...overrides }
 }
 
-function buildMockPage() {
+function buildMockPage(innerText = 'Welcome back') {
   return {
-    content: jest.fn().mockResolvedValue('<html><body>Welcome back</body></html>'),
+    // Simulate page.evaluate for innerText-based checks:
+    // The assertions pass a (text) => body.innerText.includes(text) callback.
+    // In Node tests there's no DOM, so we implement the check directly.
+    evaluate: jest.fn().mockImplementation((_fn: unknown, arg: string) =>
+      Promise.resolve(innerText.includes(arg))
+    ),
+    content: jest.fn().mockResolvedValue(`<html><body>${innerText}</body></html>`),
     url: jest.fn().mockReturnValue('https://app.com/dashboard'),
     title: jest.fn().mockResolvedValue('My App — Dashboard'),
     locator: jest.fn().mockReturnValue({
@@ -47,15 +53,13 @@ const options = { elementTimeout: 5000 }
 
 describe('executeAssertion — page contains', () => {
   test('passes when text is present', async () => {
-    const page = makePage()
+    const page = makePage({}, 'Welcome back')
     const instr = makeInstruction(['page', 'contains', 'Welcome back'])
     await expect(executeAssertion(page as any, instr, store, options)).resolves.toBeUndefined()
   })
 
   test('throws when text is absent', async () => {
-    const page = makePage({
-      content: jest.fn().mockResolvedValue('<html><body>Nothing here</body></html>'),
-    })
+    const page = makePage({}, 'Nothing here')
     const instr = makeInstruction(['page', 'contains', 'Welcome back'])
     await expect(executeAssertion(page as any, instr, store, options)).rejects.toThrow(
       'expected page to contain "Welcome back"'
@@ -65,17 +69,13 @@ describe('executeAssertion — page contains', () => {
 
 describe('executeAssertion — page does not contain', () => {
   test('passes when text is absent', async () => {
-    const page = makePage({
-      content: jest.fn().mockResolvedValue('<html><body>Clean page</body></html>'),
-    })
+    const page = makePage({}, 'Clean page')
     const instr = makeInstruction(['page', 'does', 'not', 'contain', 'Error'])
     await expect(executeAssertion(page as any, instr, store, options)).resolves.toBeUndefined()
   })
 
   test('throws when text is present', async () => {
-    const page = makePage({
-      content: jest.fn().mockResolvedValue('<html><body>Error occurred</body></html>'),
-    })
+    const page = makePage({}, 'Error occurred')
     const instr = makeInstruction(['page', 'does', 'not', 'contain', 'Error'])
     await expect(executeAssertion(page as any, instr, store, options)).rejects.toThrow(
       'expected page NOT to contain "Error"'

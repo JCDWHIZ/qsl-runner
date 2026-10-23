@@ -177,7 +177,10 @@ async function executeInstruction(
       // instruction.args = ['to', '$base', '+', '/login'] for example
       const urlParts = resolveArgs(instruction.args.slice(1), store)
       const navUrl = urlParts.filter((a) => a !== 'to').join('')
-      await currentContext.page.goto(navUrl, { waitUntil: 'domcontentloaded' })
+      await currentContext.page.goto(navUrl, { waitUntil: 'load' })
+      // Allow single-page application hydration to complete
+      await currentContext.page.waitForLoadState('domcontentloaded').catch(() => {})
+      await currentContext.page.waitForTimeout(500)
       break
     }
 
@@ -280,7 +283,7 @@ async function executeInstruction(
       break
     }
 
-    // ── Checkboxes ──────────────────────────────────────────────────────────
+    // ── Checkboxes / Toggles ─────────────────────────────────────────────────
     case 'check': {
       if (!instruction.selector) throw new Error(`check: no selector specified on line ${instruction.lineNumber}`)
       const locator = await findElement(currentContext.page, instruction.selector, elementTimeout)
@@ -292,6 +295,20 @@ async function executeInstruction(
       if (!instruction.selector) throw new Error(`uncheck: no selector specified on line ${instruction.lineNumber}`)
       const locator = await findElement(currentContext.page, instruction.selector, elementTimeout)
       await locator.uncheck()
+      break
+    }
+
+    case 'toggle': {
+      if (!instruction.selector) throw new Error(`toggle: no selector specified on line ${instruction.lineNumber}`)
+      const locator = await findElement(currentContext.page, instruction.selector, elementTimeout)
+      try {
+        const checked = await locator.isChecked()
+        if (checked) await locator.uncheck()
+        else await locator.check()
+      } catch {
+        // Custom UI toggle/switch component — fall back to click
+        await locator.click()
+      }
       break
     }
 
@@ -375,8 +392,20 @@ async function executeInstruction(
       break
     }
 
-    // ── Frame switching ─────────────────────────────────────────────────────
+    // ── Frame / Tab switching ────────────────────────────────────────────────
     case 'switch': {
+      // "switch to new tab"
+      if (args[0] === 'to' && args[1] === 'new' && args[2] === 'tab') {
+        const context = currentContext.page.context()
+        const existingPages = context.pages()
+        const newPage =
+          existingPages[existingPages.length - 1] !== currentContext.page
+            ? existingPages[existingPages.length - 1]
+            : await context.waitForEvent('page', { timeout: waitTimeout })
+        await newPage.waitForLoadState('domcontentloaded').catch(() => {})
+        currentContext.page = newPage
+        break
+      }
       // "switch to frame [selector]" or "switch to main frame"
       if (args[0] === 'to' && args[1] === 'main') {
         currentContext.page = page
@@ -397,6 +426,21 @@ async function executeInstruction(
         ;(currentContext as any).frame = frameLocator
       }
       break
+    }
+
+    case 'close': {
+      if (args[0] === 'tab') {
+        const context = currentContext.page.context()
+        const closingPage = currentContext.page
+        const remaining = context.pages().filter((p) => p !== closingPage)
+        await closingPage.close()
+        const fallback = remaining[remaining.length - 1]
+        if (fallback) {
+          currentContext.page = fallback
+        }
+        break
+      }
+      throw new Error(`close: unrecognized target "${args[0]}" on line ${instruction.lineNumber}`)
     }
 
     // ── Ignore already-consumed control flow tokens ─────────────────────────

@@ -1,6 +1,6 @@
 {
   "name": "qsl-runner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Plain English browser automation scripts powered by Playwright",
   "keywords": [
     "playwright",
@@ -43,6 +43,8 @@
     "build:watch": "tsc --project tsconfig.json --watch",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
+    "install-browsers": "playwright install chromium ffmpeg",
+    "postinstall": "playwright install chromium ffmpeg",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

@@ -11,8 +11,12 @@ import { resolveValue } from './variables'
 // ── Individual assertion handlers ─────────────────────────────────────────────
 
 async function assertPageContains(page: Page, text: string): Promise<void> {
-  const content = await page.content()
-  if (!content.includes(text)) {
+  const found = await page.evaluate(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (t: string) => (globalThis as any).document?.body?.innerText?.includes(t) ?? false,
+    text
+  )
+  if (!found) {
     throw new Error(
       `Assertion failed — expected page to contain "${text}" but it did not.`
     )
@@ -20,8 +24,12 @@ async function assertPageContains(page: Page, text: string): Promise<void> {
 }
 
 async function assertPageNotContains(page: Page, text: string): Promise<void> {
-  const content = await page.content()
-  if (content.includes(text)) {
+  const found = await page.evaluate(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (t: string) => (globalThis as any).document?.body?.innerText?.includes(t) ?? false,
+    text
+  )
+  if (found) {
     throw new Error(
       `Assertion failed — expected page NOT to contain "${text}" but it did.`
     )
@@ -36,11 +44,13 @@ async function assertElementVisible(
   if (!instruction.selector) {
     throw new Error('assert [selector] is visible — no selector provided')
   }
-  const locator = await findElement(page, instruction.selector, options.elementTimeout)
-  const visible = await locator.isVisible()
-  if (!visible) {
+  const timeout = options.elementTimeout ?? 5000
+  const locator = await findElement(page, instruction.selector, timeout)
+  try {
+    await locator.waitFor({ state: 'visible', timeout })
+  } catch {
     throw new Error(
-      `Assertion failed — expected element "${instruction.selector.value}" to be visible but it is not.`
+      `Assertion failed — expected element "${instruction.selector.value}" to be visible within ${timeout}ms.`
     )
   }
 }

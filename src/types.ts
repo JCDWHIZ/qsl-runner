@@ -119,6 +119,20 @@ export interface RunOptions {
    * @default { width: 1280, height: 720 }
    */
   viewport?: { width: number; height: number }
+
+  /**
+   * Enable recording execution video to videoDir (.webm).
+   * Requires Playwright's FFmpeg binary (`npx playwright install chromium ffmpeg`).
+   * If FFmpeg is not installed, execution will continue without video recording.
+   * @default false
+   */
+  recordVideo?: boolean
+
+  /**
+   * Directory to store execution videos.
+   * @default './qsl-videos'
+   */
+  videoDir?: string
 }
 
 // ── Step result ───────────────────────────────────────────────────────────────
